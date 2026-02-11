@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FindThem - Lost and Found Person Search</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <i class="fas fa-search"></i>
+                <span>FindThem</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#home" class="nav-link active">Home</a></li>
+                <li><a href="#report" class="nav-link">Report</a></li>
+                <li><a href="#search" class="nav-link">Search</a></li>
+                <li><a href="#about" class="nav-link">About</a></li>
+            </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <h1 class="hero-title">Find Missing Loved Ones</h1>
+            <p class="hero-subtitle">Using AI-Powered Face Recognition Technology</p>
+            <div class="hero-buttons">
+                <button class="btn btn-primary" onclick="scrollToSection('report')">
+                    <i class="fas fa-upload"></i> Report Missing Person
+                </button>
+                <button class="btn btn-secondary" onclick="scrollToSection('search')">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </div>
+        </div>
+        <div class="hero-stats">
+            <div class="stat">
+                <h3 id="total-cases">0</h3>
+                <p>Total Cases</p>
+            </div>
+            <div class="stat">
+                <h3 id="missing-count">0</h3>
+                <p>Missing Persons</p>
+            </div>
+            <div class="stat">
+                <h3 id="found-count">0</h3>
+                <p>Found Persons</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Report Section -->
+    <section id="report" class="section">
+        <div class="container">
+            <h2 class="section-title">Report a Missing or Found Person</h2>
+            <div class="report-container">
+                <form id="reportForm" class="report-form">
+                    <div class="form-group">
+                        <label for="personName">Person's Name *</label>
+                        <input type="text" id="personName" placeholder="Enter full name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="caseStatus">Status *</label>
+                        <select id="caseStatus" required>
+                            <option value="">Select status...</option>
+                            <option value="missing">Missing Person</option>
+                            <option value="found">Found Person</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Description *</label>
+                        <textarea id="description" placeholder="Provide details about the person (age, clothing, location, etc.)" rows="4" required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contact">Contact Information *</label>
+                        <input type="email" id="contact" placeholder="Email or phone number" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="photoInput">Upload Photo *</label>
+                        <div class="photo-upload">
+                            <input type="file" id="photoInput" accept="image/*" required>
+                            <div class="upload-placeholder">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>Click or drag photo here</p>
+                                <span>JPG, PNG, GIF (Max 10MB)</span>
+                            </div>
+                        </div>
+                        <div id="photoPreview" class="photo-preview" style="display:none;">
+                            <img id="previewImage" alt="Preview">
+                            <button type="button" class="btn-remove" onclick="removePhoto()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-large">
+                        <i class="fas fa-upload"></i> Submit Report
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Search Section -->
+    <section id="search" class="section section-alt">
+        <div class="container">
+            <h2 class="section-title">Search for Similar Faces</h2>
+            <div class="search-container">
+                <div class="search-upload">
+                    <input type="file" id="searchInput" accept="image/*">
+                    <div class="upload-placeholder">
+                        <i class="fas fa-image"></i>
+                        <p>Upload a photo to search</p>
+                        <span>JPG, PNG, GIF (Max 10MB)</span>
+                    </div>
+                    <div id="searchPhotoPreview" class="photo-preview" style="display:none;">
+                        <img id="searchPreviewImage" alt="Search Preview">
+                        <button type="button" class="btn-remove" onclick="removeSearchPhoto()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button id="searchBtn" class="btn btn-primary btn-large" style="display:none;">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </div>
+
+            <!-- Search Status -->
+            <div id="searchStatus" class="search-status" style="display:none;">
+                <div class="status-message">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p id="statusText">Searching...</p>
+                </div>
+            </div>
+
+            <!-- Search Results -->
+            <div id="searchResults" class="search-results" style="display:none;">
+                <div class="match-found-banner" style="display:none;" id="matchBanner">
+                    <i class="fas fa-check-circle"></i>
+                    <h2>✓ MATCH FOUND!</h2>
+                    <p>We found similar face(s) in our database. See the results below:</p>
+                </div>
+                <div class="results-header">
+                    <div>
+                        <h3>🎯 Search Results</h3>
+                        <p id="resultsCount" class="results-subtitle"></p>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" onclick="removeSearchPhoto()">
+                        <i class="fas fa-redo"></i> New Search
+                    </button>
+                </div>
+                <div id="resultsList" class="results-list"></div>
+            </div>
+
+            <div id="noResults" class="no-results" style="display:none;">
+                <i class="fas fa-search"></i>
+                <h3>No Match Found</h3>
+                <p>We couldn't find any matching faces in our database that are similar to the uploaded photo.</p>
+                <p style="font-size: 0.9rem; color: #9ca3af;">Try uploading a different photo or check back later as more cases are added to the database.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cases Section -->
+    <section id="cases" class="section">
+        <div class="container">
+            <h2 class="section-title">Missing & Found Persons</h2>
+            <div class="cases-filters">
+                <button class="filter-btn active" data-filter="all" onclick="filterPersons('all')">All Cases</button>
+                <button class="filter-btn" data-filter="missing" onclick="filterPersons('missing')">Missing Persons</button>
+                <button class="filter-btn" data-filter="found" onclick="filterPersons('found')">Found Persons</button>
+            </div>
+            <div id="casesList" class="cases-grid"></div>
+            <div id="noCasesMessage" class="no-cases-message" style="display:none;">
+                <i class="fas fa-inbox"></i>
+                <h3>No Cases Found</h3>
+                <p>Be the first to report a case!</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="section section-alt">
+        <div class="container">
+            <h2 class="section-title">About FindThem</h2>
+            <div class="about-content">
+                <div class="about-text">
+                    <h3>Helping Find Missing Loved Ones</h3>
+                    <p>FindThem is an AI-powered platform that uses advanced face recognition technology to help locate missing persons and reunite families. Our system compares photos against a database of cases to identify potential matches quickly and accurately.</p>
+                    <h4>Key Features:</h4>
+                    <ul class="features-list">
+                        <li><i class="fas fa-check"></i> Advanced face detection and recognition</li>
+                        <li><i class="fas fa-check"></i> Real-time search and matching</li>
+                        <li><i class="fas fa-check"></i> Secure image upload and storage</li>
+                        <li><i class="fas fa-check"></i> Fast and accurate results</li>
+                        <li><i class="fas fa-check"></i> Easy to use interface</li>
+                        <li><i class="fas fa-check"></i> Privacy-focused design</li>
+                    </ul>
+                </div>
+                <div class="about-image">
+                    <div class="placeholder-image">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 FindThem. All rights reserved. | Built with Team Dhurandar<i class="fas fa-heart"></i> to help find lost ones.</p>
+            <p>Privacy Policy | Terms of Service | Contact Us</p>
+        </div>
+    </footer>
+
+    <!-- Loading Modal -->
+    <div id="loadingModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <div class="spinner"></div>
+            <p id="loadingText">Processing...</p>
+        </div>
+    </div>
+
+    <!-- Alert Modal -->
+    <div id="alertModal" class="modal" style="display:none;">
+        <div class="modal-content alert-modal">
+            <i id="alertIcon" class="fas fa-check-circle"></i>
+            <h2 id="alertTitle">Alert</h2>
+            <p id="alertMessage">This is an alert message</p>
+            <button class="btn btn-primary" onclick="closeAlert()">Close</button>
+        </div>
+    </div>
+
+    <!-- Debug Info (hidden by default) -->
+    <div id="debugInfo" style="display:none; position: fixed; bottom: 10px; right: 10px; background: #f0f0f0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; font-size: 12px; max-width: 300px; max-height: 200px; overflow-y: auto; z-index: 999;">
+        <h4>Debug Info</h4>
+        <p><strong>API:</strong> <span id="debugAPI">-</span></p>
+        <p><strong>Search Endpoint:</strong> <span id="debugSearch">-</span></p>
+        <p><strong>Status:</strong> <span id="debugStatus">Ready</span></p>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

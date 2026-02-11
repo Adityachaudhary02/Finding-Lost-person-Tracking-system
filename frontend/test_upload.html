@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload Test</title>
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        .test { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        button { padding: 10px 20px; background: #6366f1; color: white; border: none; cursor: pointer; }
+        input[type="file"] { margin: 10px 0; }
+        .result { margin-top: 10px; padding: 10px; background: #f0f0f0; }
+    </style>
+</head>
+<body>
+    <h1>Upload Test</h1>
+    
+    <div class="test">
+        <h2>Test 1: Upload to Backend</h2>
+        <input type="file" id="testFile" accept="image/*">
+        <input type="text" id="testName" placeholder="Enter name" value="Test Person">
+        <select id="testStatus">
+            <option value="missing">Missing</option>
+            <option value="found">Found</option>
+        </select>
+        <input type="text" id="testDesc" placeholder="Description" value="Test description">
+        <input type="text" id="testContact" placeholder="Contact" value="test@example.com">
+        <button onclick="testUpload()">Test Upload</button>
+        <div id="result1" class="result" style="display:none;"></div>
+    </div>
+
+    <div class="test">
+        <h2>Test 2: API Health Check</h2>
+        <button onclick="testAPI()">Check API Status</button>
+        <div id="result2" class="result" style="display:none;"></div>
+    </div>
+
+    <div class="test">
+        <h2>Test 3: Search API</h2>
+        <input type="file" id="searchFile" accept="image/*">
+        <button onclick="testSearch()">Test Search</button>
+        <div id="result3" class="result" style="display:none;"></div>
+    </div>
+
+    <script>
+        async function testAPI() {
+            const result = document.getElementById('result2');
+            result.style.display = 'block';
+            result.innerHTML = '<p>Testing API connection...</p>';
+            
+            try {
+                const response = await fetch('http://localhost:8000/api/stats');
+                const data = await response.json();
+                result.innerHTML = `<p>✅ API OK!</p><pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                result.innerHTML = `<p>❌ API Error: ${error.message}</p>`;
+            }
+        }
+
+        async function testUpload() {
+            const result = document.getElementById('result1');
+            const file = document.getElementById('testFile').files[0];
+            
+            if (!file) {
+                result.style.display = 'block';
+                result.innerHTML = '<p>❌ No file selected</p>';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('name', document.getElementById('testName').value);
+            formData.append('status', document.getElementById('testStatus').value);
+            formData.append('description', document.getElementById('testDesc').value);
+            formData.append('contact', document.getElementById('testContact').value);
+            formData.append('image', file);
+
+            result.style.display = 'block';
+            result.innerHTML = '<p>⏳ Uploading...</p>';
+
+            try {
+                const response = await fetch('http://localhost:8000/api/upload-case', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    result.innerHTML = `<p>✅ Upload successful!</p><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                } else {
+                    result.innerHTML = `<p>❌ Upload failed</p><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                }
+            } catch (error) {
+                result.innerHTML = `<p>❌ Error: ${error.message}</p>`;
+            }
+        }
+
+        async function testSearch() {
+            const result = document.getElementById('result3');
+            const file = document.getElementById('searchFile').files[0];
+            
+            if (!file) {
+                result.style.display = 'block';
+                result.innerHTML = '<p>❌ No file selected</p>';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('image', file);
+
+            result.style.display = 'block';
+            result.innerHTML = '<p>⏳ Searching...</p>';
+
+            try {
+                const response = await fetch('http://localhost:8000/api/search-face', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    result.innerHTML = `<p>✅ Search successful!</p><p>Found ${data.matches.length} matches</p><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                } else {
+                    result.innerHTML = `<p>❌ Search failed</p><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                }
+            } catch (error) {
+                result.innerHTML = `<p>❌ Error: ${error.message}</p>`;
+            }
+        }
+
+        // Auto-test API on load
+        window.onload = function() {
+            console.log('✅ Test page loaded');
+            testAPI();
+        };
+    </script>
+</body>
+</html>

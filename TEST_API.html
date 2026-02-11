@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FindThem - API Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .test-section {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        
+        .test-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            background: #f8f9ff;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f0f1ff;
+        }
+        
+        .upload-area.active {
+            border-color: #28a745;
+            background: #f0fff4;
+        }
+        
+        .upload-area input {
+            display: none;
+        }
+        
+        .upload-area p {
+            margin: 10px 0;
+            color: #666;
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+        }
+        
+        button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .status.loading {
+            background: #e3f2fd;
+            color: #1976d2;
+            border: 1px solid #1976d2;
+            display: block;
+        }
+        
+        .status.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #2e7d32;
+            display: block;
+        }
+        
+        .status.error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #c62828;
+            display: block;
+        }
+        
+        .results {
+            margin-top: 30px;
+            display: none;
+        }
+        
+        .results.show {
+            display: block;
+        }
+        
+        .result-card {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .result-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .result-card p {
+            color: #666;
+            margin: 5px 0;
+            word-break: break-all;
+        }
+        
+        .similarity {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .json-output {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            margin-top: 15px;
+        }
+        
+        .console-log {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+        }
+        
+        .console-log div {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid #667eea;
+            padding-left: 10px;
+        }
+        
+        .console-log .log-time {
+            color: #999;
+            font-weight: bold;
+        }
+        
+        .console-log .log-success {
+            color: #28a745;
+        }
+        
+        .console-log .log-error {
+            color: #dc3545;
+        }
+        
+        .console-log .log-info {
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 FindThem API Test</h1>
+            <p>Test the API connection and frontend display</p>
+        </div>
+        
+        <div class="test-section">
+            <h2>Step 1: Upload Test Image</h2>
+            <div class="upload-area" onclick="document.getElementById('testImage').click()">
+                <p><strong>Click to upload or drag & drop</strong></p>
+                <p style="font-size: 12px;">Support: JPG, PNG, GIF, BMP</p>
+                <input type="file" id="testImage" accept="image/*">
+            </div>
+            <div id="previewContainer" style="margin-top: 20px; display: none;">
+                <img id="imagePreview" style="max-width: 300px; border-radius: 5px;">
+                <p id="fileName" style="margin-top: 10px; color: #666;"></p>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Step 2: Send to API</h2>
+            <button onclick="testSearch()" id="searchBtn">🚀 Search Face</button>
+            <div id="status" class="status"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Console Output</h2>
+            <div class="console-log" id="console"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>API Response (Raw JSON)</h2>
+            <div id="jsonResponse" class="json-output" style="display: none;"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Parsed Results</h2>
+            <div id="results" class="results"></div>
+        </div>
+    </div>
+
+    <script>
+        let selectedFile = null;
+        const consoleLogs = [];
+        
+        function addLog(message, type = 'info') {
+            const time = new Date().toLocaleTimeString();
+            consoleLogs.push({ time, message, type });
+            
+            const consoleDiv = document.getElementById('console');
+            const logDiv = document.createElement('div');
+            logDiv.innerHTML = `<span class="log-time">${time}</span> <span class="log-${type}">${message}</span>`;
+            consoleDiv.appendChild(logDiv);
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+        
+        document.getElementById('testImage').addEventListener('change', function(e) {
+            selectedFile = e.target.files[0];
+            if (selectedFile) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    document.getElementById('imagePreview').src = event.target.result;
+                    document.getElementById('fileName').textContent = selectedFile.name;
+                    document.getElementById('previewContainer').style.display = 'block';
+                    addLog(`✅ File selected: ${selectedFile.name}`, 'success');
+                };
+                reader.readAsDataURL(selectedFile);
+            }
+        });
+        
+        async function testSearch() {
+            if (!selectedFile) {
+                alert('Please select an image first');
+                return;
+            }
+            
+            addLog('🔍 Starting search...', 'info');
+            
+            const formData = new FormData();
+            formData.append('image', selectedFile);
+            
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = 'status loading';
+            statusDiv.textContent = 'Sending request to API...';
+            
+            try {
+                addLog(`📤 Sending POST to: http://localhost:8000/api/search-face`, 'info');
+                
+                const response = await fetch('http://localhost:8000/api/search-face', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                addLog(`📥 Response status: ${response.status} ${response.statusText}`, 'info');
+                
+                const data = await response.json();
+                
+                // Show raw JSON
+                document.getElementById('jsonResponse').textContent = JSON.stringify(data, null, 2);
+                document.getElementById('jsonResponse').style.display = 'block';
+                
+                addLog(`✅ Response received: ${JSON.stringify(data).substring(0, 100)}...`, 'success');
+                
+                if (response.ok && data.success) {
+                    addLog(`🎉 Search successful! Found ${data.matches.length} raw matches`, 'success');
+                    
+                    // Filter to 90%+
+                    const filtered = data.matches.filter(m => m.similarity_percentage >= 90);
+                    addLog(`🔍 Filtered: ${data.matches.length} total → ${filtered.length} with 90%+ similarity`, 'info');
+                    
+                    if (filtered.length > 0) {
+                        displayResults(filtered);
+                        statusDiv.className = 'status success';
+                        statusDiv.textContent = `✅ Found ${filtered.length} match(es) with 90%+ similarity!`;
+                    } else {
+                        statusDiv.className = 'status success';
+                        statusDiv.textContent = `✅ Search completed - No matches with 90%+ similarity`;
+                        addLog('⚠️ No matches with 90%+ similarity', 'error');
+                    }
+                } else {
+                    statusDiv.className = 'status error';
+                    statusDiv.textContent = `❌ Error: ${data.detail || 'Unknown error'}`;
+                    addLog(`❌ Error: ${data.detail}`, 'error');
+                }
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = `❌ ${error.message}`;
+                addLog(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+        
+        function displayResults(matches) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+            
+            matches.forEach((match, index) => {
+                const card = document.createElement('div');
+                card.className = 'result-card';
+                card.innerHTML = `
+                    <h3>#${index + 1}: ${match.name}</h3>
+                    <p><strong>Similarity:</strong> <span class="similarity">${match.similarity_percentage}%</span></p>
+                    <p><strong>Status:</strong> ${match.status.toUpperCase()}</p>
+                    <p><strong>Contact:</strong> ${match.contact}</p>
+                    <p><strong>Description:</strong> ${match.description}</p>
+                    <p><strong>Image:</strong> ${match.image_path}</p>
+                    <img src="http://localhost:8000/uploads/${match.image_path}" style="max-width: 200px; margin-top: 10px; border-radius: 5px;" onerror="this.style.display='none'">
+                `;
+                resultsDiv.appendChild(card);
+            });
+            
+            resultsDiv.classList.add('show');
+            addLog('✅ Results displayed on page', 'success');
+        }
+        
+        addLog('🚀 Test page loaded. Ready to test!', 'success');
+    </script>
+</body>
+</html>

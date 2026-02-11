@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FindThem - Complete System Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        h1, h2 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            font-size: 32px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 15px;
+        }
+
+        h2 {
+            font-size: 20px;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            margin: 5px 5px 5px 0;
+        }
+
+        .status.pass {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.fail {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .test-item {
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #667eea;
+            background: #f8f9ff;
+            border-radius: 5px;
+        }
+
+        .test-item.pass {
+            border-left-color: #28a745;
+            background: #f0fff4;
+        }
+
+        .test-item.fail {
+            border-left-color: #dc3545;
+            background: #fff5f5;
+        }
+
+        .test-item strong {
+            color: #333;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px 10px 0;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #764ba2;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .upload-area {
+            border: 2px dashed #667eea;
+            padding: 40px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            background: #f8f9ff;
+        }
+
+        .upload-area input {
+            display: none;
+        }
+
+        .preview {
+            margin-top: 20px;
+        }
+
+        .preview img {
+            max-width: 300px;
+            border-radius: 8px;
+        }
+
+        .console {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 500px;
+            overflow-y: auto;
+            line-height: 1.5;
+        }
+
+        .console .log-info { color: #4ec9b0; }
+        .console .log-success { color: #6a9955; }
+        .console .log-warning { color: #ce9178; }
+        .console .log-error { color: #f48771; }
+
+        .result-card {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+
+        .result-card img {
+            max-width: 200px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .summary-item {
+            background: #f8f9ff;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .summary-item .number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .summary-item .label {
+            color: #666;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="section">
+            <h1>🔍 FindThem - Complete System Test</h1>
+            <p>Comprehensive diagnostic tool to test every component of the system</p>
+        </div>
+
+        <!-- System Health Check -->
+        <div class="section">
+            <h2>1. System Health Check</h2>
+            <button onclick="checkHealth()">🏥 Check System Health</button>
+            <button onclick="checkDatabase()">💾 Check Database</button>
+            <button onclick="checkFrontend()">🎨 Check Frontend</button>
+            <div id="healthResults"></div>
+        </div>
+
+        <!-- API Connection Test -->
+        <div class="section">
+            <h2>2. API Connection Test</h2>
+            <button onclick="testAPIConnection()">🌐 Test API Connection</button>
+            <div id="apiResults"></div>
+        </div>
+
+        <!-- Photo Upload & Search Test -->
+        <div class="section">
+            <h2>3. Photo Upload & Search Test</h2>
+            <div class="upload-area" onclick="document.getElementById('uploadInput').click()">
+                <p><strong>Click to upload test image</strong></p>
+                <p style="font-size: 12px; color: #999;">Or drag & drop (JPG, PNG, GIF, BMP)</p>
+                <input type="file" id="uploadInput" accept="image/*">
+            </div>
+            <div id="preview" class="preview"></div>
+            <button onclick="testFullSearch()">🚀 Search with Image</button>
+            <div id="searchResults"></div>
+        </div>
+
+        <!-- Display Test -->
+        <div class="section">
+            <h2>4. Result Display Test</h2>
+            <button onclick="testMockDisplay()">📊 Test Result Display with Mock Data</button>
+            <div id="mockResults"></div>
+        </div>
+
+        <!-- Console Output -->
+        <div class="section">
+            <h2>5. Console Output</h2>
+            <div class="console" id="console"></div>
+        </div>
+
+        <!-- Summary -->
+        <div class="section">
+            <h2>Test Summary</h2>
+            <div class="summary" id="summary"></div>
+        </div>
+    </div>
+
+    <script>
+        let selectedFile = null;
+        const testResults = {
+            health: null,
+            database: null,
+            frontend: null,
+            api: null,
+            search: null,
+            display: null
+        };
+
+        function log(message, type = 'info') {
+            const console = document.getElementById('console');
+            const time = new Date().toLocaleTimeString();
+            const span = document.createElement('div');
+            span.innerHTML = `<span class="log-${type}">[${time}] ${message}</span>`;
+            console.appendChild(span);
+            console.scrollTop = console.scrollHeight;
+        }
+
+        function addResult(testName, passed, details) {
+            testResults[testName] = { passed, details };
+            log(`${passed ? '✅' : '❌'} ${testName}: ${details}`, passed ? 'success' : 'error');
+            updateSummary();
+        }
+
+        function updateSummary() {
+            const summary = document.getElementById('summary');
+            summary.innerHTML = '';
+            let passed = 0;
+            let failed = 0;
+
+            for (const [test, result] of Object.entries(testResults)) {
+                if (result) {
+                    if (result.passed) passed++;
+                    else failed++;
+                }
+            }
+
+            const total = Object.values(testResults).filter(r => r).length;
+            const passPercentage = total > 0 ? Math.round((passed / total) * 100) : 0;
+
+            summary.innerHTML = `
+                <div class="summary-item">
+                    <div class="number">${passed}</div>
+                    <div class="label">Passed</div>
+                </div>
+                <div class="summary-item">
+                    <div class="number">${failed}</div>
+                    <div class="label">Failed</div>
+                </div>
+                <div class="summary-item">
+                    <div class="number">${passPercentage}%</div>
+                    <div class="label">Success Rate</div>
+                </div>
+                <div class="summary-item">
+                    <div class="number">${total}</div>
+                    <div class="label">Tests Run</div>
+                </div>
+            `;
+        }
+
+        async function checkHealth() {
+            log('Checking system health...', 'info');
+            try {
+                const response = await fetch('http://localhost:8000/health');
+                if (response.ok) {
+                    const data = await response.json();
+                    addResult('health', true, `Backend healthy - Database: ${data.database}`);
+                    document.getElementById('healthResults').innerHTML = `
+                        <div class="test-item pass">
+                            <strong>Backend Status:</strong> Healthy ✅<br>
+                            <strong>Database:</strong> ${data.database}<br>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    throw new Error('Unhealthy response');
+                }
+            } catch (e) {
+                addResult('health', false, `Backend error: ${e.message}`);
+                document.getElementById('healthResults').innerHTML = `
+                    <div class="test-item fail">
+                        <strong>❌ Backend Error</strong><br>
+                        Make sure backend is running on port 8000<br>
+                        Run: <code>python -m uvicorn main:app --port 8000</code>
+                    </div>
+                `;
+            }
+        }
+
+        async function checkDatabase() {
+            log('Checking database...', 'info');
+            try {
+                const response = await fetch('http://localhost:8000/api/stats');
+                if (response.ok) {
+                    const data = await response.json();
+                    const totalCases = data.statistics.total_cases;
+                    addResult('database', totalCases > 0, `Database has ${totalCases} cases`);
+                    document.getElementById('healthResults').innerHTML += `
+                        <div class="test-item ${totalCases > 0 ? 'pass' : 'fail'}">
+                            <strong>Database Statistics:</strong><br>
+                            Total Cases: ${totalCases}<br>
+                            Missing: ${data.statistics.missing_persons}<br>
+                            Found: ${data.statistics.found_persons}
+                        </div>
+                    `;
+                } else {
+                    throw new Error('Failed to get stats');
+                }
+            } catch (e) {
+                addResult('database', false, `Database check failed: ${e.message}`);
+            }
+        }
+
+        async function checkFrontend() {
+            log('Checking frontend...', 'info');
+            const requiredElements = ['searchInput', 'searchBtn', 'searchResults', 'noResults', 'resultsList', 'matchBanner'];
+            const missing = requiredElements.filter(id => !document.getElementById(id));
+            
+            if (missing.length === 0) {
+                addResult('frontend', true, 'All required DOM elements found');
+                document.getElementById('healthResults').innerHTML += `
+                    <div class="test-item pass">
+                        <strong>Frontend Check:</strong> All elements present ✅
+                    </div>
+                `;
+            } else {
+                addResult('frontend', false, `Missing elements: ${missing.join(', ')}`);
+                document.getElementById('healthResults').innerHTML += `
+                    <div class="test-item fail">
+                        <strong>Frontend Issue:</strong> Missing elements: ${missing.join(', ')}
+                    </div>
+                `;
+            }
+        }
+
+        async function testAPIConnection() {
+            log('Testing API endpoints...', 'info');
+            const endpoints = [
+                { url: 'http://localhost:8000/health', name: 'Health' },
+                { url: 'http://localhost:8000/api/stats', name: 'Stats' },
+                { url: 'http://localhost:8000/api/cases', name: 'Cases' }
+            ];
+
+            let resultsHtml = '';
+            let allPassed = true;
+
+            for (const endpoint of endpoints) {
+                try {
+                    const response = await fetch(endpoint.url);
+                    if (response.ok) {
+                        log(`✅ ${endpoint.name} endpoint responding`, 'success');
+                        resultsHtml += `<div class="test-item pass"><strong>${endpoint.name}:</strong> ✅ Responding</div>`;
+                    } else {
+                        throw new Error(`Status ${response.status}`);
+                    }
+                } catch (e) {
+                    log(`❌ ${endpoint.name} endpoint failed: ${e.message}`, 'error');
+                    resultsHtml += `<div class="test-item fail"><strong>${endpoint.name}:</strong> ❌ ${e.message}</div>`;
+                    allPassed = false;
+                }
+            }
+
+            addResult('api', allPassed, allPassed ? 'All endpoints responding' : 'Some endpoints failed');
+            document.getElementById('apiResults').innerHTML = resultsHtml;
+        }
+
+        document.getElementById('uploadInput').addEventListener('change', function(e) {
+            selectedFile = e.target.files[0];
+            if (selectedFile) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    document.getElementById('preview').innerHTML = `
+                        <img src="${event.target.result}" alt="Preview">
+                        <p><strong>${selectedFile.name}</strong> (${(selectedFile.size / 1024).toFixed(2)} KB)</p>
+                    `;
+                    log(`📁 File selected: ${selectedFile.name}`, 'info');
+                };
+                reader.readAsDataURL(selectedFile);
+            }
+        });
+
+        async function testFullSearch() {
+            if (!selectedFile) {
+                alert('Please select an image first');
+                return;
+            }
+
+            log('Starting full search test...', 'info');
+            const formData = new FormData();
+            formData.append('image', selectedFile);
+
+            try {
+                log('📤 Sending request to /api/search-face...', 'info');
+                const response = await fetch('http://localhost:8000/api/search-face', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                log(`📥 Response: ${response.status}`, 'info');
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    log(`🎉 Search successful! Found ${data.matches.length} matches`, 'success');
+                    
+                    const filtered = data.matches.filter(m => m.similarity_percentage >= 90);
+                    log(`🔍 Filtered to 90%+: ${filtered.length} results`, filtered.length > 0 ? 'success' : 'warning');
+
+                    addResult('search', filtered.length > 0 || data.matches.length === 0, `Search returned ${data.matches.length} matches`);
+
+                    let resultsHtml = `<div class="test-item pass"><strong>API Response:</strong> ${JSON.stringify(data).substring(0, 200)}...</div>`;
+
+                    if (filtered.length > 0) {
+                        resultsHtml += '<div style="margin-top: 20px;"><h3>Filtered Results (90%+):</h3>';
+                        filtered.forEach((match, i) => {
+                            resultsHtml += `
+                                <div class="result-card">
+                                    <h4>#${i + 1}: ${match.name}</h4>
+                                    <p><strong>Similarity:</strong> ${match.similarity_percentage}%</p>
+                                    <p><strong>Status:</strong> ${match.status}</p>
+                                    <p><strong>Contact:</strong> ${match.contact}</p>
+                                    <img src="http://localhost:8000/uploads/${match.image_path}" alt="${match.name}" onerror="this.style.display='none'">
+                                </div>
+                            `;
+                        });
+                        resultsHtml += '</div>';
+                    } else {
+                        resultsHtml += '<div class="test-item">No matches with 90%+ similarity</div>';
+                    }
+
+                    document.getElementById('searchResults').innerHTML = resultsHtml;
+                } else {
+                    throw new Error(data.detail || 'Unknown error');
+                }
+            } catch (e) {
+                log(`❌ Search failed: ${e.message}`, 'error');
+                addResult('search', false, `Search error: ${e.message}`);
+                document.getElementById('searchResults').innerHTML = `
+                    <div class="test-item fail"><strong>Search Error:</strong> ${e.message}</div>
+                `;
+            }
+        }
+
+        function testMockDisplay() {
+            log('Testing result display with mock data...', 'info');
+            
+            const mockMatches = [
+                {
+                    case_id: 1,
+                    name: 'Test Person',
+                    status: 'found',
+                    contact: 'test@example.com',
+                    description: 'Test description',
+                    image_path: '20260122_190547_adi photo.jpg',
+                    similarity_percentage: 100
+                },
+                {
+                    case_id: 2,
+                    name: 'Another Person',
+                    status: 'missing',
+                    contact: 'another@example.com',
+                    description: 'Another test',
+                    image_path: '20260122_192412_aditya pic form.jpg',
+                    similarity_percentage: 95
+                }
+            ];
+
+            let resultsHtml = '<h3>✓ MATCH FOUND!</h3>';
+            resultsHtml += `<p>Found ${mockMatches.length} matches with 90%+ similarity</p>`;
+
+            mockMatches.forEach((match, i) => {
+                resultsHtml += `
+                    <div class="result-card">
+                        <h4>#${i + 1}: ${match.name}</h4>
+                        <p><strong>Similarity:</strong> ${match.similarity_percentage}%</p>
+                        <p><strong>Status:</strong> ${match.status.toUpperCase()}</p>
+                        <p><strong>Contact:</strong> ${match.contact}</p>
+                        <p><strong>Description:</strong> ${match.description}</p>
+                        <img src="http://localhost:8000/uploads/${match.image_path}" alt="${match.name}" onerror="this.alt='Image not found'">
+                    </div>
+                `;
+            });
+
+            addResult('display', true, 'Mock display rendered successfully');
+            log('✅ Result display rendered correctly', 'success');
+            document.getElementById('mockResults').innerHTML = resultsHtml;
+        }
+
+        // Auto-run checks on load
+        log('Test page loaded. Click buttons to run tests.', 'info');
+    </script>
+</body>
+</html>

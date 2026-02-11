@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Search Results Debug</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+        }
+
+        .debug-panel {
+            background: #f0f0f0;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+
+        .debug-panel h2 {
+            margin-top: 0;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #6366f1;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            margin: 5px;
+        }
+
+        .log {
+            background: #000;
+            color: #0f0;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .success {
+            color: #0f0;
+        }
+
+        .error {
+            color: #f00;
+        }
+
+        .warning {
+            color: #ff0;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🔍 Search Results Display Debug</h1>
+
+    <div class="debug-panel">
+        <h2>Step 1: API Test</h2>
+        <button onclick="testAPI()">Test API Connection</button>
+        <div id="apiLog" class="log"></div>
+    </div>
+
+    <div class="debug-panel">
+        <h2>Step 2: Simulate Search Results (with mock data)</h2>
+        <button onclick="simulateSearchResults()">Show Mock Results</button>
+        <div id="simulateLog" class="log"></div>
+    </div>
+
+    <div class="debug-panel">
+        <h2>Step 3: Check DOM Elements</h2>
+        <button onclick="checkDOMElements()">Check Elements</button>
+        <div id="domLog" class="log"></div>
+    </div>
+
+    <hr>
+
+    <!-- Include the actual search section from index.html -->
+    <section id="search" class="section section-alt">
+        <div class="container">
+            <h2 class="section-title">Search Results Test Area</h2>
+            <div class="search-container">
+                <div class="search-upload">
+                    <input type="file" id="searchInput" accept="image/*">
+                    <div class="upload-placeholder">
+                        <i class="fas fa-image"></i>
+                        <p>Upload a photo to search</p>
+                        <span>JPG, PNG, GIF (Max 10MB)</span>
+                    </div>
+                    <div id="searchPhotoPreview" class="photo-preview" style="display:none;">
+                        <img id="searchPreviewImage" alt="Search Preview">
+                        <button type="button" class="btn-remove" onclick="removeSearchPhoto()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button id="searchBtn" class="btn btn-primary btn-large" style="display:none;"
+                    onclick="testRealSearch()">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </div>
+
+            <!-- Search Status -->
+            <div id="searchStatus" class="search-status" style="display:none;">
+                <div class="status-message">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p id="statusText">Searching...</p>
+                </div>
+            </div>
+
+            <!-- Search Results -->
+            <div id="searchResults" class="search-results" style="display:none;">
+                <div class="match-found-banner" style="display:none;" id="matchBanner">
+                    <i class="fas fa-check-circle"></i>
+                    <h2>✓ MATCH FOUND!</h2>
+                    <p>We found similar face(s) in our database. See the results below:</p>
+                </div>
+                <div class="results-header">
+                    <div>
+                        <h3>🎯 Search Results</h3>
+                        <p id="resultsCount" class="results-subtitle"></p>
+                    </div>
+                </div>
+                <div id="resultsList" class="results-list"></div>
+            </div>
+
+            <div id="noResults" class="no-results" style="display:none;">
+                <i class="fas fa-search"></i>
+                <h3>No Match Found</h3>
+                <p>We couldn't find any matching faces in our database.</p>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8000/api';
+        const SEARCH_ENDPOINT = `${API_BASE_URL}/search-face`;
+
+        function log(message, type = 'normal') {
+            console.log(message);
+        }
+
+        function addLog(elementId, message, type = 'normal') {
+            const logEl = document.getElementById(elementId);
+            const span = document.createElement('div');
+            if (type === 'success') span.className = 'success';
+            else if (type === 'error') span.className = 'error';
+            else if (type === 'warning') span.className = 'warning';
+            span.textContent = message;
+            logEl.appendChild(span);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        async function testAPI() {
+            const logId = 'apiLog';
+            document.getElementById(logId).innerHTML = '';
+            addLog(logId, '⏳ Testing API connection...');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/stats`);
+                if (response.ok) {
+                    const data = await response.json();
+                    addLog(logId, '✅ API is working!', 'success');
+                    addLog(logId, `Total cases: ${data.statistics.total_cases}`);
+                } else {
+                    addLog(logId, `❌ API returned status ${response.status}`, 'error');
+                }
+            } catch (error) {
+                addLog(logId, `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        function checkDOMElements() {
+            const logId = 'domLog';
+            document.getElementById(logId).innerHTML = '';
+
+            const elements = [
+                'searchStatus',
+                'searchResults',
+                'noResults',
+                'resultsList',
+                'matchBanner',
+                'resultsCount'
+            ];
+
+            addLog(logId, '🔍 Checking DOM elements...');
+            elements.forEach(id => {
+                const elem = document.getElementById(id);
+                if (elem) {
+                    const styles = window.getComputedStyle(elem);
+                    addLog(logId, `✅ #${id} found`, 'success');
+                    addLog(logId, `   Display: ${styles.display}`, 'warning');
+                    addLog(logId, `   Visibility: ${styles.visibility}`);
+                } else {
+                    addLog(logId, `❌ #${id} NOT FOUND!`, 'error');
+                }
+            });
+        }
+
+        function simulateSearchResults() {
+            const logId = 'simulateLog';
+            document.getElementById(logId).innerHTML = '';
+            addLog(logId, '🎬 Simulating search results display...');
+
+            // Mock data
+            const mockData = {
+                success: true,
+                matches: [
+                    {
+                        case_id: 1,
+                        name: 'John Doe',
+                        status: 'missing',
+                        contact: 'john@example.com',
+                        description: 'Missing since January 2026',
+                        image_path: '20260122_165204_Neem Karoli Baba Wallpaper (7).jpg',
+                        similarity_percentage: 95.5
+                    },
+                    {
+                        case_id: 2,
+                        name: 'Jane Smith',
+                        status: 'found',
+                        contact: 'jane@example.com',
+                        description: 'Found in January 2026',
+                        image_path: '20260122_190547_adi photo.jpg',
+                        similarity_percentage: 87.3
+                    }
+                ]
+            };
+
+            try {
+                addLog(logId, '📝 Mock data created with ' + mockData.matches.length + ' matches');
+
+                // Call the display function
+                displayMockResults(mockData);
+
+                addLog(logId, '✅ Display function called successfully', 'success');
+                addLog(logId, 'Check the page below to see if results are displayed');
+
+            } catch (error) {
+                addLog(logId, `❌ Error: ${error.message}`, 'error');
+                addLog(logId, `Stack: ${error.stack}`);
+            }
+        }
+
+        function displayMockResults(data) {
+            const searchStatus = document.getElementById('searchStatus');
+            const searchResults = document.getElementById('searchResults');
+            const noResults = document.getElementById('noResults');
+            const resultsList = document.getElementById('resultsList');
+            const matchBanner = document.getElementById('matchBanner');
+
+            console.log('📥 Display results called');
+            console.log('Data:', data);
+
+            // Hide status
+            if (searchStatus) searchStatus.style.display = 'none';
+
+            // Extract matches robustly
+            let matches = [];
+            if (data.match) {
+                matches = [data.match];
+            } else if (data.matches) {
+                matches = data.matches;
+            }
+
+            if (matches.length === 0) {
+                if (matchBanner) matchBanner.style.display = 'none';
+                if (noResults) noResults.style.display = 'block';
+                if (searchResults) searchResults.style.display = 'block';
+                if (resultsList) resultsList.innerHTML = '';
+                return;
+            }
+
+            // Build HTML
+            let resultsHTML = '';
+            matches.forEach((match, index) => {
+                const imagePath = match.image_path.startsWith('http') ? match.image_path : `${API_BASE_URL.replace('/api', '')}/uploads/${match.image_path}`;
+                const statusClass = match.status === 'missing' ? 'status-missing' : 'status-found';
+                const statusText = match.status === 'missing' ? 'MISSING' : 'FOUND';
+
+                resultsHTML += `
+                    <div class="result-card">
+                        <div style="position: relative;">
+                            <img src="${imagePath}" alt="${match.name}" class="result-image" onerror="this.src='https://via.placeholder.com/320x250?text=No+Image'">
+                            <span class="result-badge">#${index + 1} Match</span>
+                        </div>
+                        <div class="result-content">
+                            <div>
+                                <div class="result-header">
+                                    <div>
+                                        <div class="result-name">${match.name}</div>
+                                    </div>
+                                    <span class="result-status ${statusClass}">${statusText}</span>
+                                </div>
+                                
+                                <div class="result-similarity">
+                                    <div class="similarity-label">Match Confidence</div>
+                                    <div class="similarity-bar">
+                                        <div class="similarity-fill" style="width: ${match.similarity_percentage}%"></div>
+                                    </div>
+                                    <div class="result-score">${match.similarity_percentage}% Match</div>
+                                </div>
+                                
+                                <div class="result-details">
+                                    <strong><i class="fas fa-envelope"></i> Contact:</strong><br>
+                                    ${match.contact}
+                                </div>
+                                
+                                <div class="result-details">
+                                    <strong><i class="fas fa-info-circle"></i> Details:</strong><br>
+                                    ${match.description}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Set HTML
+            if (resultsList) {
+                resultsList.innerHTML = resultsHTML;
+                console.log('✅ HTML set to resultsList');
+            }
+
+            // Set result count
+            const resultsCountElement = document.getElementById('resultsCount');
+            if (resultsCountElement) {
+                resultsCountElement.innerHTML = `Found <strong>${matches.length} potential match(es)</strong> with 60%+ similarity`;
+            }
+
+            // Show results
+            if (matchBanner) matchBanner.style.display = 'block';
+            if (searchResults) searchResults.style.display = 'block';
+            if (noResults) noResults.style.display = 'none';
+
+            console.log('✅ Display complete');
+        }
+
+        function removeSearchPhoto() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('searchPhotoPreview').style.display = 'none';
+            document.getElementById('searchBtn').style.display = 'none';
+            document.getElementById('searchResults').style.display = 'none';
+            document.getElementById('noResults').style.display = 'none';
+        }
+
+        async function testRealSearch() {
+            const searchInput = document.getElementById('searchInput');
+            const file = searchInput.files[0];
+
+            if (!file) {
+                alert('Please select a file');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('image', file);
+
+            document.getElementById('searchStatus').style.display = 'block';
+            document.getElementById('statusText').textContent = 'Searching...';
+
+            try {
+                const response = await fetch(SEARCH_ENDPOINT, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                console.log('Search response:', data);
+
+                if (response.ok && data.success) {
+                    displayMockResults(data);
+                } else {
+                    alert('Search error: ' + (data.detail || 'Unknown error'));
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                document.getElementById('searchStatus').style.display = 'none';
+            }
+        }
+
+        // Upload preview handler
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            document.getElementById('searchPreviewImage').src = event.target.result;
+                            document.getElementById('searchPhotoPreview').style.display = 'block';
+                            document.getElementById('searchBtn').style.display = 'block';
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>
